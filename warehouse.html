@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>לב אחד - פרטי מחסן</title>
+<meta name="description" content="ציוד זמין למעלה, ציוד בשימוש למטה, הכנסה והוצאה בלחיצה אחת.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231D4E63' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="warehouse">
+
+<header class="app-header">
+  <div class="app-header__brand">
+    <svg class="app-header__brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1D4E63" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <span>לב אחד</span>
+  </div>
+  <nav class="nav" aria-label="ניווט ראשי">
+    <a class="nav__item" href="index.html" data-nav-item="home">בית</a>
+    <a class="nav__item" href="warehouses.html" data-nav-item="warehouses">מחסנים</a>
+    <a class="nav__item" href="managers.html" data-nav-item="managers">מנהלים</a>
+  </nav>
+</header>
+
+<main class="main">
+  <p class="page-title__promise u-mt-0">
+    <a class="tel-link" href="warehouses.html">&rarr; חזרה למחסנים</a>
+  </p>
+  <div class="page-title">
+    <h1 data-warehouse-title>&nbsp;</h1>
+    <p class="page-title__promise" data-warehouse-location></p>
+  </div>
+
+  <div class="not-found-panel" data-warehouse-not-found hidden>
+    <p class="empty-panel__text">אולי הקישור שגוי, או שהמחסן הוסר. אפשר לחזור לרשימת המחסנים.</p>
+    <div class="add-trigger"><a class="btn btn--primary" href="warehouses.html">חזרה למחסנים</a></div>
+  </div>
+
+  <div data-warehouse-body>
+    <div class="field" style="max-width: 260px; margin-top: 8px;">
+      <label for="warehouse-switch">מעבר למחסן אחר</label>
+      <select id="warehouse-switch" data-warehouse-switch></select>
+    </div>
+
+    <h2 class="section-title">ציוד זמין</h2>
+    <ul class="row-list" data-available-list></ul>
+    <p class="empty-state" data-available-empty hidden>אין כרגע ציוד זמין במחסן זה.</p>
+
+    <h2 class="section-title section-title--muted">ציוד בשימוש</h2>
+    <ul class="row-list" data-inuse-list></ul>
+    <p class="empty-state" data-inuse-empty hidden>אין כרגע ציוד בשימוש.</p>
+
+    <div class="add-trigger">
+      <button type="button" class="btn btn--ghost" data-add-item-trigger>+ הוסף פריט חדש</button>
+    </div>
+
+    <form class="add-form" data-add-item-form hidden>
+      <div class="field">
+        <label for="item-name">שם הפריט</label>
+        <input id="item-name" type="text" required data-item-name-input>
+      </div>
+      <div class="field">
+        <label for="item-qty">כמות כוללת</label>
+        <input id="item-qty" type="number" min="1" step="1" required data-item-qty-input>
+      </div>
+      <div class="add-form__actions">
+        <button type="submit" class="btn btn--primary">שמור פריט</button>
+        <button type="button" class="btn btn--ghost" data-add-item-cancel>ביטול</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<p class="build-footer">כלי פנימי, גרסת עבודה</p>
+
+<div class="toast" aria-live="polite"><div class="toast__body"></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>לב אחד - בית</title>
+<meta name="description" content="סיכום כולל של כל הציוד בכל המחסנים, סך הכל.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231D4E63' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+
+<header class="app-header">
+  <div class="app-header__brand">
+    <svg class="app-header__brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1D4E63" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+  <span>לב אחד</span>
+  </div>
+  <nav class="nav" aria-label="ניווט ראשי">
+    <a class="nav__item" href="index.html" data-nav-item="home">בית</a>
+    <a class="nav__item" href="warehouses.html" data-nav-item="warehouses">מחסנים</a>
+    <a class="nav__item" href="managers.html" data-nav-item="managers">מנהלים</a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="page-title">
+    <h1>בית</h1>
+    <p class="page-title__promise">הנה כל מה שיש לכם, בסך הכל, עכשיו.</p>
+    <p class="page-title__promise" data-last-updated></p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="tile__value tile__value--primary numeric" data-tile="tile-types">0</div>
+      <div class="tile__label">סוגי ציוד</div>
+    </div>
+    <div class="tile">
+      <div class="tile__value tile__value--primary numeric" data-tile="tile-qty">0</div>
+      <div class="tile__label">סה"כ כמות</div>
+    </div>
+    <div class="tile">
+      <div class="tile__value tile__value--accent numeric" data-tile="tile-available">0</div>
+      <div class="tile__label">זמין</div>
+    </div>
+    <div class="tile">
+      <div class="tile__value tile__value--muted numeric" data-tile="tile-inuse">0</div>
+      <div class="tile__label">בשימוש</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">כל הציוד, בכל המחסנים</h2>
+  <ul class="row-list" data-rollup-list></ul>
+  <div class="empty-panel" data-rollup-empty hidden>
+    <svg class="empty-panel__icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1D4E63" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <div class="empty-panel__title">עדיין אין ציוד רשום</div>
+    <p class="empty-panel__text">תתחילו במחסן הראשון, מה שתוסיפו שם יופיע כאן אוטומטית.</p>
+  </div>
+
+  <p class="page-title__promise" style="margin-top: 24px;">
+    <a class="tel-link" href="warehouses.html">למחסנים לפי שם &larr;</a>
+  </p>
+</main>
+
+<p class="build-footer">כלי פנימי, גרסת עבודה</p>
+
+<div class="toast" aria-live="polite"><div class="toast__body"></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>
