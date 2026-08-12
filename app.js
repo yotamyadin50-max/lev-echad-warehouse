@@ -307,6 +307,8 @@
       document.querySelector('[data-warehouse-location]').textContent = warehouse.location;
     }
 
+    var openPanel = null;
+
     var switchEl = document.querySelector('[data-warehouse-switch]');
     if (switchEl) {
       data.warehouses.forEach(function (w) {
@@ -385,7 +387,9 @@
       wrap.appendChild(panel);
 
       actionBtn.addEventListener('click', function () {
+        if (openPanel && openPanel !== panel) openPanel.hidden = true;
         panel.hidden = !panel.hidden;
+        openPanel = panel.hidden ? null : panel;
       });
 
       rowEl.appendChild(wrap);
@@ -399,9 +403,11 @@
       var stepperRow = el('div', 'stepper-row');
       var minusBtn = el('button', 'stepper__btn', '−');
       minusBtn.type = 'button';
+      minusBtn.setAttribute('aria-label', 'הפחת כמות');
       var valueEl = el('div', 'stepper__value numeric', '1');
       var plusBtn = el('button', 'stepper__btn', '+');
       plusBtn.type = 'button';
+      plusBtn.setAttribute('aria-label', 'הוסף כמות');
 
       stepperRow.appendChild(minusBtn);
       stepperRow.appendChild(valueEl);
@@ -456,6 +462,14 @@
         var d = getData();
         var target = d.items.filter(function (it) { return it.id === item.id; })[0];
         if (!target) return;
+        // Re-validate against the freshly-read value, not the maxVal this panel was built with:
+        // the row could be stale if another tab/window changed this same item since render().
+        var freshMax = mode === 'available' ? target.qtyAvailable : target.qtyInUse;
+        if (current > freshMax) {
+          confirmBtn.disabled = false;
+          showToast('הנתון השתנה, רעננו את הדף ונסו שוב');
+          return;
+        }
         if (mode === 'available') {
           target.qtyAvailable -= current;
           target.qtyInUse += current;
