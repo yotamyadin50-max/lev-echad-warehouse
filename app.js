@@ -156,7 +156,6 @@
     var totals = grandTotals(data);
 
     setTileValue('tile-types', totals.totalTypes);
-    setTileValue('tile-qty', totals.totalQty);
     setTileValue('tile-available', totals.available);
     setTileValue('tile-inuse', totals.inUse);
 
