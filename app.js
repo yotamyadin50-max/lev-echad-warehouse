@@ -92,6 +92,19 @@
     };
   }
 
+  function uniqueItemNames(data) {
+    var seen = {};
+    var names = [];
+    data.items.forEach(function (it) {
+      if (!seen[it.name]) {
+        seen[it.name] = true;
+        names.push(it.name);
+      }
+    });
+    names.sort(function (a, b) { return a.localeCompare(b, 'he'); });
+    return names;
+  }
+
   function rollupByName(data) {
     var map = {};
     data.items.forEach(function (it) {
@@ -357,6 +370,16 @@
           inuseHost.appendChild(buildItemRow(it, 'inuse'));
         });
       }
+
+      var suggestList = document.querySelector('[data-item-name-suggestions]');
+      if (suggestList) {
+        suggestList.innerHTML = '';
+        uniqueItemNames(d).forEach(function (name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          suggestList.appendChild(opt);
+        });
+      }
     }
 
     function buildItemRow(item, mode) {
@@ -377,6 +400,14 @@
       meta.appendChild(qtyBlock);
       meta.appendChild(actionBtn);
 
+      var otherWarehouseCount = data.warehouses.length - 1;
+      var transferBtn = null;
+      if (mode === 'available' && otherWarehouseCount > 0) {
+        transferBtn = el('button', 'btn btn--ghost', 'העבר למחסן אחר');
+        transferBtn.type = 'button';
+        meta.appendChild(transferBtn);
+      }
+
       var wrap = el('div', '');
       wrap.style.width = '100%';
       wrap.appendChild(top);
@@ -391,8 +422,125 @@
         openPanel = panel.hidden ? null : panel;
       });
 
+      if (transferBtn) {
+        var transferPanel = buildTransferPanel(item, qtyVal);
+        wrap.appendChild(transferPanel);
+        transferBtn.addEventListener('click', function () {
+          if (openPanel && openPanel !== transferPanel) openPanel.hidden = true;
+          transferPanel.hidden = !transferPanel.hidden;
+          openPanel = transferPanel.hidden ? null : transferPanel;
+        });
+      }
+
       rowEl.appendChild(wrap);
       return rowEl;
+    }
+
+    function buildTransferPanel(item, maxVal) {
+      var panel = el('div', 'stepper-panel');
+      panel.hidden = true;
+
+      var destField = el('div', 'field');
+      var destLabel = el('label', '', 'העבר אל');
+      var destSelectId = newId('transfer-dest');
+      destLabel.setAttribute('for', destSelectId);
+      var destSelect = document.createElement('select');
+      destSelect.id = destSelectId;
+      getData().warehouses.forEach(function (w) {
+        if (w.id === id) return;
+        var opt = el('option', '', w.name);
+        opt.value = w.id;
+        destSelect.appendChild(opt);
+      });
+      destField.appendChild(destLabel);
+      destField.appendChild(destSelect);
+
+      var stepperRow = el('div', 'stepper-row');
+      var minusBtn = el('button', 'stepper__btn', '−');
+      minusBtn.type = 'button';
+      minusBtn.setAttribute('aria-label', 'הפחת כמות');
+      var valueEl = el('div', 'stepper__value numeric', '1');
+      var plusBtn = el('button', 'stepper__btn', '+');
+      plusBtn.type = 'button';
+      plusBtn.setAttribute('aria-label', 'הוסף כמות');
+      stepperRow.appendChild(minusBtn);
+      stepperRow.appendChild(valueEl);
+      stepperRow.appendChild(plusBtn);
+
+      var maxEl = el('div', 'stepper__max', 'מקסימום זמין: ' + fmt(maxVal));
+      var errEl = el('div', 'stepper__error', 'אין מספיק זמין');
+      errEl.hidden = true;
+
+      var actions = el('div', 'stepper__actions');
+      var confirmBtn = el('button', 'btn btn--primary', 'העבר');
+      confirmBtn.type = 'button';
+      var cancelBtn = el('button', 'btn btn--ghost', 'ביטול');
+      cancelBtn.type = 'button';
+      actions.appendChild(confirmBtn);
+      actions.appendChild(cancelBtn);
+
+      panel.appendChild(destField);
+      panel.appendChild(stepperRow);
+      panel.appendChild(maxEl);
+      panel.appendChild(errEl);
+      panel.appendChild(actions);
+
+      var current = 1;
+
+      function refresh() {
+        valueEl.textContent = String(current);
+        var invalid = current > maxVal || current < 1;
+        confirmBtn.disabled = invalid || maxVal === 0 || !destSelect.value;
+        errEl.hidden = current <= maxVal;
+      }
+
+      minusBtn.addEventListener('click', function () {
+        current = Math.max(1, current - 1);
+        refresh();
+      });
+
+      plusBtn.addEventListener('click', function () {
+        current = Math.min(maxVal, current + 1);
+        refresh();
+      });
+
+      cancelBtn.addEventListener('click', function () {
+        current = 1;
+        refresh();
+        panel.hidden = true;
+      });
+
+      confirmBtn.addEventListener('click', function () {
+        if (confirmBtn.disabled) return;
+        if (current > maxVal || current < 1) return;
+        var destId = destSelect.value;
+        if (!destId) return;
+        confirmBtn.disabled = true;
+        var d = getData();
+        var source = d.items.filter(function (it) { return it.id === item.id; })[0];
+        if (!source) return;
+        // Re-validate against the freshly-read value, same discipline as check-out/check-in.
+        if (current > source.qtyAvailable) {
+          confirmBtn.disabled = false;
+          showToast('הנתון השתנה, רעננו את הדף ונסו שוב');
+          return;
+        }
+        source.qtyAvailable -= current;
+        var dest = d.items.filter(function (it) { return it.warehouseId === destId && it.name === source.name; })[0];
+        if (dest) {
+          dest.qtyAvailable += current;
+        } else {
+          d.items.push({ id: newId('i'), warehouseId: destId, name: source.name, qtyAvailable: current, qtyInUse: 0 });
+        }
+        setData(d);
+        current = 1;
+        panel.hidden = true;
+        render();
+        showToast('הועבר');
+      });
+
+      refresh();
+      return panel;
     }
 
     function buildStepperPanel(item, mode, maxVal) {

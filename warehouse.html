@@ -61,7 +61,8 @@
     <form class="add-form" data-add-item-form hidden>
       <div class="field">
         <label for="item-name">שם הפריט</label>
-        <input id="item-name" type="text" required dir="auto" data-item-name-input>
+        <input id="item-name" type="text" required dir="auto" list="item-name-suggestions" autocomplete="off" data-item-name-input>
+        <datalist id="item-name-suggestions" data-item-name-suggestions></datalist>
       </div>
       <div class="field">
         <label for="item-qty">כמות כוללת</label>
