@@ -2,8 +2,6 @@
   'use strict';
 
   var STORAGE_KEY = 'levEchadWarehouseData_v1';
-  var LAST_UPDATED_KEY = 'levEchadWarehouseLastUpdated_v1';
-  var LOW_STOCK_RATIO = 0.15;
 
   // ---------- Starting data ----------
   // Ships empty on purpose: real warehouses, equipment, and managers are entered
@@ -31,20 +29,6 @@
 
   function setData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    localStorage.setItem(LAST_UPDATED_KEY, String(Date.now()));
-  }
-
-  function getLastUpdated() {
-    var raw = localStorage.getItem(LAST_UPDATED_KEY);
-    return raw ? Number(raw) : null;
-  }
-
-  function formatLastUpdated(ts) {
-    if (!ts) return 'אין עדיין פעולות';
-    var d = new Date(ts);
-    var time = new Intl.DateTimeFormat('he-IL', { hour: '2-digit', minute: '2-digit' }).format(d);
-    var date = new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'numeric' }).format(d);
-    return 'עודכן לאחרונה: ' + date + ', ' + time;
   }
 
   function newId(prefix) {
@@ -75,23 +59,6 @@
     return { totalTypes: totalTypes, totalQty: totalQty, available: available, inUse: inUse };
   }
 
-  function grandTotals(data) {
-    var totalTypesSet = {};
-    var totalQty = 0, available = 0, inUse = 0;
-    data.items.forEach(function (it) {
-      totalTypesSet[it.name] = true;
-      totalQty += it.qtyAvailable + it.qtyInUse;
-      available += it.qtyAvailable;
-      inUse += it.qtyInUse;
-    });
-    return {
-      totalTypes: Object.keys(totalTypesSet).length,
-      totalQty: totalQty,
-      available: available,
-      inUse: inUse
-    };
-  }
-
   function uniqueItemNames(data) {
     var seen = {};
     var names = [];
@@ -109,10 +76,9 @@
     var map = {};
     data.items.forEach(function (it) {
       if (!map[it.name]) {
-        map[it.name] = { name: it.name, totalQty: 0, available: 0 };
+        map[it.name] = { name: it.name, totalQty: 0 };
       }
       map[it.name].totalQty += it.qtyAvailable + it.qtyInUse;
-      map[it.name].available += it.qtyAvailable;
     });
     var rows = Object.keys(map).map(function (k) { return map[k]; });
     rows.sort(function (a, b) { return b.totalQty - a.totalQty; });
@@ -162,19 +128,11 @@
   }
 
   // ---------- Page: home ----------
+  // Per explicit instruction: just every item and how much of it there is, nothing else.
   function initHomePage() {
     renderShell('home');
 
     var data = getData();
-    var totals = grandTotals(data);
-
-    setTileValue('tile-types', totals.totalTypes);
-    setTileValue('tile-available', totals.available);
-    setTileValue('tile-inuse', totals.inUse);
-
-    var updatedEl = document.querySelector('[data-last-updated]');
-    if (updatedEl) updatedEl.textContent = formatLastUpdated(getLastUpdated());
-
     var listHost = document.querySelector('[data-rollup-list]');
     var emptyHost = document.querySelector('[data-rollup-empty]');
     var rows = rollupByName(data);
@@ -188,36 +146,11 @@
     rows.forEach(function (row) {
       var rowEl = el('li', 'row');
       var name = el('div', 'row__name', row.name);
-      var meta = el('div', 'row__meta');
-
-      var isLow = row.totalQty > 0 && (row.available / row.totalQty) <= LOW_STOCK_RATIO;
-
-      var qtyBlock = el('div', '');
       var qtyVal = el('span', 'row__qty numeric', fmt(row.totalQty));
-      var qtyLabel = el('span', 'row__qty-label', 'סה"כ');
-      qtyBlock.appendChild(qtyVal);
-      qtyBlock.appendChild(qtyLabel);
-
-      var availBlock = el('div', '');
-      var availVal = el('span', 'row__qty numeric', fmt(row.available));
-      availVal.style.color = isLow ? 'var(--color-error)' : 'var(--color-accent)';
-      var availLabel = el('span', 'row__qty-label', isLow ? 'זמין · מלאי נמוך' : 'זמין');
-      if (isLow) availLabel.style.color = 'var(--color-error)';
-      availBlock.appendChild(availVal);
-      availBlock.appendChild(availLabel);
-
-      meta.appendChild(qtyBlock);
-      meta.appendChild(availBlock);
-
       rowEl.appendChild(name);
-      rowEl.appendChild(meta);
+      rowEl.appendChild(qtyVal);
       listHost.appendChild(rowEl);
     });
-  }
-
-  function setTileValue(key, value) {
-    var e = document.querySelector('[data-tile="' + key + '"]');
-    if (e) e.textContent = fmt(value);
   }
 
   // ---------- Page: warehouses ----------
