@@ -341,6 +341,10 @@
         meta.appendChild(transferBtn);
       }
 
+      var editBtn = el('button', 'btn btn--ghost', 'ערוך');
+      editBtn.type = 'button';
+      meta.appendChild(editBtn);
+
       var wrap = el('div', '');
       wrap.style.width = '100%';
       wrap.appendChild(top);
@@ -365,8 +369,121 @@
         });
       }
 
+      var editPanel = buildEditPanel(item);
+      wrap.appendChild(editPanel);
+      editBtn.addEventListener('click', function () {
+        if (openPanel && openPanel !== editPanel) openPanel.hidden = true;
+        editPanel.hidden = !editPanel.hidden;
+        openPanel = editPanel.hidden ? null : editPanel;
+      });
+
       rowEl.appendChild(wrap);
       return rowEl;
+    }
+
+    function buildEditPanel(item) {
+      var panel = el('div', 'stepper-panel');
+      panel.hidden = true;
+
+      var nameField = el('div', 'field');
+      var nameLabel = el('label', '', 'שם הפריט');
+      var nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.dir = 'auto';
+      nameInput.value = item.name;
+      var nameId = newId('edit-name');
+      nameInput.id = nameId;
+      nameLabel.setAttribute('for', nameId);
+      nameField.appendChild(nameLabel);
+      nameField.appendChild(nameInput);
+
+      var availField = el('div', 'field');
+      var availLabel = el('label', '', 'כמות זמינה');
+      var availInput = document.createElement('input');
+      availInput.type = 'number';
+      availInput.min = '0';
+      availInput.step = '1';
+      availInput.value = String(item.qtyAvailable);
+      var availId = newId('edit-avail');
+      availInput.id = availId;
+      availLabel.setAttribute('for', availId);
+      availField.appendChild(availLabel);
+      availField.appendChild(availInput);
+
+      var inUseField = el('div', 'field');
+      var inUseLabel = el('label', '', 'כמות בשימוש');
+      var inUseInput = document.createElement('input');
+      inUseInput.type = 'number';
+      inUseInput.min = '0';
+      inUseInput.step = '1';
+      inUseInput.value = String(item.qtyInUse);
+      var inUseId = newId('edit-inuse');
+      inUseInput.id = inUseId;
+      inUseLabel.setAttribute('for', inUseId);
+      inUseField.appendChild(inUseLabel);
+      inUseField.appendChild(inUseInput);
+
+      var errEl = el('div', 'stepper__error', 'שם ושתי הכמויות הם שדות חובה, כמות לא יכולה להיות שלילית');
+      errEl.hidden = true;
+
+      var actions = el('div', 'add-form__actions');
+      var saveBtn = el('button', 'btn btn--primary', 'שמור שינויים');
+      saveBtn.type = 'button';
+      var cancelBtn = el('button', 'btn btn--ghost', 'ביטול');
+      cancelBtn.type = 'button';
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+
+      panel.appendChild(nameField);
+      panel.appendChild(availField);
+      panel.appendChild(inUseField);
+      panel.appendChild(errEl);
+      panel.appendChild(actions);
+
+      cancelBtn.addEventListener('click', function () {
+        nameInput.value = item.name;
+        availInput.value = String(item.qtyAvailable);
+        inUseInput.value = String(item.qtyInUse);
+        errEl.hidden = true;
+        panel.hidden = true;
+      });
+
+      saveBtn.addEventListener('click', function () {
+        var newName = nameInput.value.trim();
+        var newAvail = parseInt(availInput.value, 10);
+        var newInUse = parseInt(inUseInput.value, 10);
+        if (!newName || isNaN(newAvail) || isNaN(newInUse) || newAvail < 0 || newInUse < 0) {
+          errEl.hidden = false;
+          return;
+        }
+        errEl.hidden = true;
+
+        var d = getData();
+        var target = d.items.filter(function (it) { return it.id === item.id; })[0];
+        if (!target) return;
+
+        target.name = newName;
+        target.qtyAvailable = newAvail;
+        target.qtyInUse = newInUse;
+
+        // If the edited name now matches a different item in the same warehouse,
+        // merge into it and drop this record, same discipline as add-item's merge.
+        var duplicate = d.items.filter(function (it) {
+          return it.id !== target.id && it.warehouseId === target.warehouseId && it.name === newName;
+        })[0];
+        if (duplicate) {
+          duplicate.qtyAvailable += target.qtyAvailable;
+          duplicate.qtyInUse += target.qtyInUse;
+          d.items = d.items.filter(function (it) { return it.id !== target.id; });
+        }
+
+        setData(d);
+        panel.hidden = true;
+        render();
+        showToast('נשמר');
+      });
+
+      return panel;
     }
 
     function buildTransferPanel(item, maxVal) {
