@@ -133,23 +133,29 @@
     renderShell('home');
 
     var data = getData();
+    var tableHost = document.querySelector('[data-rollup-table]');
     var listHost = document.querySelector('[data-rollup-list]');
     var emptyHost = document.querySelector('[data-rollup-empty]');
     var rows = rollupByName(data);
 
     if (rows.length === 0) {
+      if (tableHost) tableHost.hidden = true;
       emptyHost.hidden = false;
       return;
     }
+    if (tableHost) tableHost.hidden = false;
     emptyHost.hidden = true;
 
     rows.forEach(function (row) {
-      var rowEl = el('li', 'row');
-      var name = el('div', 'row__name', row.name);
-      var qtyVal = el('span', 'row__qty numeric', fmt(row.totalQty));
-      rowEl.appendChild(name);
-      rowEl.appendChild(qtyVal);
-      listHost.appendChild(rowEl);
+      var tr = document.createElement('tr');
+      var nameCell = document.createElement('td');
+      nameCell.textContent = row.name;
+      var qtyCell = document.createElement('td');
+      qtyCell.className = 'numeric';
+      qtyCell.textContent = fmt(row.totalQty);
+      tr.appendChild(nameCell);
+      tr.appendChild(qtyCell);
+      listHost.appendChild(tr);
     });
   }
 

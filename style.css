@@ -161,7 +161,58 @@
     font-size: 14px;
   }
 
-  /* Row card, the shared vertical-list component (never a <table>) */
+  /* Home's rollup, deliberately a real <table>: exactly 2 columns (item, quantity),
+     so it can look and read like a spreadsheet without ever risking horizontal scroll,
+     the one place in the build that isn't the row-card pattern below. */
+  .rollup-table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    table-layout: fixed;
+  }
+
+  .rollup-table[hidden] { display: none; }
+
+  .rollup-table th,
+  .rollup-table td {
+    border: 1px solid rgba(27, 36, 48, 0.10);
+    padding: 10px 14px;
+    text-align: start;
+  }
+
+  .rollup-table th {
+    background: rgba(29, 78, 99, 0.06);
+    color: var(--color-primary);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .rollup-table td:first-child,
+  .rollup-table th:first-child {
+    width: auto;
+    overflow-wrap: anywhere;
+  }
+
+  .rollup-table td:last-child,
+  .rollup-table th:last-child {
+    width: 110px;
+    text-align: center;
+  }
+
+  .rollup-table td.numeric {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .rollup-table tbody tr:nth-child(even) {
+    background: rgba(27, 36, 48, 0.02);
+  }
+
+  /* Row card, the shared vertical-list component everywhere else in the build */
   .row-list {
     display: flex;
     flex-direction: column;
