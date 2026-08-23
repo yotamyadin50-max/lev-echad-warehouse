@@ -223,6 +223,13 @@
     font-weight: 700;
   }
 
+  .rollup-table th.rollup-table__total-col,
+  .rollup-table tbody tr td.rollup-table__total-col {
+    background: rgba(22, 122, 92, 0.08);
+    border-inline-end-width: 2px;
+    border-inline-end-color: rgba(22, 122, 92, 0.3);
+  }
+
   .rollup-table tbody tr:nth-child(even) td {
     background: rgba(27, 36, 48, 0.02);
   }

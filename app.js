@@ -86,7 +86,7 @@
           byWarehouse[it.warehouseId] = (byWarehouse[it.warehouseId] || 0) + it.qtyAvailable + it.qtyInUse;
         }
       });
-      return { name: r.name, byWarehouse: byWarehouse };
+      return { name: r.name, total: r.totalQty, byWarehouse: byWarehouse };
     });
     return { warehouses: data.warehouses, rows: rows };
   }
@@ -155,8 +155,12 @@
     if (tableHost) tableHost.hidden = false;
     emptyHost.hidden = true;
 
-    // header: item name, then one column per warehouse (in the order they were created)
+    // header: item name, total, then one column per warehouse (in the order they were created)
     while (headerRow.children.length > 1) headerRow.removeChild(headerRow.lastChild);
+    var totalTh = document.createElement('th');
+    totalTh.textContent = 'סה"כ';
+    totalTh.className = 'rollup-table__total-col';
+    headerRow.appendChild(totalTh);
     table.warehouses.forEach(function (w) {
       var th = document.createElement('th');
       th.textContent = w.name;
@@ -169,6 +173,12 @@
       var nameCell = document.createElement('td');
       nameCell.textContent = row.name;
       tr.appendChild(nameCell);
+
+      var totalCell = document.createElement('td');
+      totalCell.className = 'numeric rollup-table__total-col';
+      totalCell.textContent = fmt(row.total);
+      tr.appendChild(totalCell);
+
       table.warehouses.forEach(function (w) {
         var cell = document.createElement('td');
         cell.className = 'numeric';
