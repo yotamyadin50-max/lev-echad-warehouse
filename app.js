@@ -47,17 +47,6 @@
     return data.items.filter(function (it) { return it.warehouseId === warehouseId; });
   }
 
-  function warehouseTotals(data, warehouseId) {
-    var items = itemsForWarehouse(data, warehouseId);
-    var totalTypes = items.length;
-    var totalQty = 0, available = 0, inUse = 0;
-    items.forEach(function (it) {
-      totalQty += it.qtyAvailable + it.qtyInUse;
-      available += it.qtyAvailable;
-      inUse += it.qtyInUse;
-    });
-    return { totalTypes: totalTypes, totalQty: totalQty, available: available, inUse: inUse };
-  }
 
   function uniqueItemNames(data) {
     var seen = {};
@@ -83,6 +72,23 @@
     var rows = Object.keys(map).map(function (k) { return map[k]; });
     rows.sort(function (a, b) { return b.totalQty - a.totalQty; });
     return rows;
+  }
+
+  // Item x warehouse cross-tab: one row per item name, one column per warehouse,
+  // each cell the item's quantity (available + in-use) in that specific warehouse.
+  function crossTabData(data) {
+    var totalsByName = rollupByName(data);
+    var rows = totalsByName.map(function (r) {
+      var byWarehouse = {};
+      data.warehouses.forEach(function (w) { byWarehouse[w.id] = 0; });
+      data.items.forEach(function (it) {
+        if (it.name === r.name) {
+          byWarehouse[it.warehouseId] = (byWarehouse[it.warehouseId] || 0) + it.qtyAvailable + it.qtyInUse;
+        }
+      });
+      return { name: r.name, byWarehouse: byWarehouse };
+    });
+    return { warehouses: data.warehouses, rows: rows };
   }
 
   // ---------- Helpers ----------
@@ -128,17 +134,20 @@
   }
 
   // ---------- Page: home ----------
-  // Per explicit instruction: just every item and how much of it there is, nothing else.
+  // Per explicit instruction (and the real reference sheet the org sent): one row per
+  // item, one column per warehouse, exactly what's in each place, nothing summarized away.
   function initHomePage() {
     renderShell('home');
 
     var data = getData();
     var tableHost = document.querySelector('[data-rollup-table]');
+    var headerRow = document.querySelector('[data-rollup-header]');
     var listHost = document.querySelector('[data-rollup-list]');
     var emptyHost = document.querySelector('[data-rollup-empty]');
-    var rows = rollupByName(data);
 
-    if (rows.length === 0) {
+    var table = crossTabData(data);
+
+    if (table.rows.length === 0 || table.warehouses.length === 0) {
       if (tableHost) tableHost.hidden = true;
       emptyHost.hidden = false;
       return;
@@ -146,15 +155,27 @@
     if (tableHost) tableHost.hidden = false;
     emptyHost.hidden = true;
 
-    rows.forEach(function (row) {
+    // header: item name, then one column per warehouse (in the order they were created)
+    while (headerRow.children.length > 1) headerRow.removeChild(headerRow.lastChild);
+    table.warehouses.forEach(function (w) {
+      var th = document.createElement('th');
+      th.textContent = w.name;
+      headerRow.appendChild(th);
+    });
+
+    listHost.innerHTML = '';
+    table.rows.forEach(function (row) {
       var tr = document.createElement('tr');
       var nameCell = document.createElement('td');
       nameCell.textContent = row.name;
-      var qtyCell = document.createElement('td');
-      qtyCell.className = 'numeric';
-      qtyCell.textContent = fmt(row.totalQty);
       tr.appendChild(nameCell);
-      tr.appendChild(qtyCell);
+      table.warehouses.forEach(function (w) {
+        var cell = document.createElement('td');
+        cell.className = 'numeric';
+        var qty = row.byWarehouse[w.id] || 0;
+        cell.textContent = qty > 0 ? fmt(qty) : '—';
+        tr.appendChild(cell);
+      });
       listHost.appendChild(tr);
     });
   }
@@ -174,36 +195,20 @@
       } else {
         emptyHost.hidden = true;
         data2.warehouses.forEach(function (w) {
-          var totals = warehouseTotals(data2, w.id);
           var a = el('a', 'card-link');
           a.href = 'warehouse.html?id=' + encodeURIComponent(w.id);
 
           var title = el('div', 'card-link__title', w.name);
           var loc = el('div', 'card-link__location', w.location || '');
-          var stats = el('div', 'card-link__stats');
-
-          stats.appendChild(statBlock('סוגי ציוד', totals.totalTypes));
-          stats.appendChild(statBlock('סה"כ', totals.totalQty));
-          stats.appendChild(statBlock('זמין', totals.available));
 
           a.appendChild(title);
           if (w.location) a.appendChild(loc);
-          a.appendChild(stats);
 
           var li = el('li', '');
           li.appendChild(a);
           listHost.appendChild(li);
         });
       }
-    }
-
-    function statBlock(label, value) {
-      var wrap = el('div', 'stat');
-      var val = el('div', 'stat__value numeric', fmt(value));
-      var lab = el('div', 'stat__label', label);
-      wrap.appendChild(val);
-      wrap.appendChild(lab);
-      return wrap;
     }
 
     render();

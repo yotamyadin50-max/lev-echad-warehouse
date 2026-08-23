@@ -161,27 +161,32 @@
     font-size: 14px;
   }
 
-  /* Home's rollup, deliberately a real <table>: exactly 2 columns (item, quantity),
-     so it can look and read like a spreadsheet without ever risking horizontal scroll,
-     the one place in the build that isn't the row-card pattern below. */
-  .rollup-table {
-    width: 100%;
+  /* Home's rollup: a real cross-tab <table>, item rows x warehouse columns, per the
+     org's own reference sheet. Column count is real and can be 5+ (one per warehouse),
+     so this is the one place in the build that scrolls sideways on purpose, scoped
+     strictly to this table's own wrapper, never the page itself. */
+  .table-scroll {
+    overflow-x: auto;
     max-width: 100%;
-    border-collapse: collapse;
-    background: var(--color-surface);
     border-radius: var(--radius);
-    overflow: hidden;
     box-shadow: var(--shadow-card);
-    table-layout: fixed;
   }
 
-  .rollup-table[hidden] { display: none; }
+  .table-scroll[hidden] { display: none; }
+
+  .rollup-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+    table-layout: auto;
+  }
 
   .rollup-table th,
   .rollup-table td {
     border: 1px solid rgba(27, 36, 48, 0.10);
     padding: 10px 14px;
     text-align: start;
+    min-width: 90px;
   }
 
   .rollup-table th {
@@ -189,17 +194,27 @@
     color: var(--color-primary);
     font-size: 13px;
     font-weight: 700;
+    white-space: nowrap;
   }
 
   .rollup-table td:first-child,
   .rollup-table th:first-child {
-    width: auto;
+    position: sticky;
+    inset-inline-start: 0;
     overflow-wrap: anywhere;
+    min-width: 140px;
+    z-index: 1;
   }
 
-  .rollup-table td:last-child,
-  .rollup-table th:last-child {
-    width: 110px;
+  .rollup-table th:first-child {
+    background: rgba(29, 78, 99, 0.1);
+  }
+
+  .rollup-table td:first-child {
+    background: var(--color-surface);
+  }
+
+  .rollup-table td:not(:first-child) {
     text-align: center;
   }
 
@@ -208,7 +223,7 @@
     font-weight: 700;
   }
 
-  .rollup-table tbody tr:nth-child(even) {
+  .rollup-table tbody tr:nth-child(even) td {
     background: rgba(27, 36, 48, 0.02);
   }
 
@@ -298,28 +313,6 @@
     color: var(--color-muted);
     font-size: 13px;
     margin-block-start: 2px;
-  }
-
-  .card-link__stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    margin-block-start: var(--space-2);
-  }
-
-  .stat {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .stat__value {
-    font-size: 18px;
-    font-weight: 700;
-  }
-
-  .stat__label {
-    font-size: 12px;
-    color: var(--color-muted);
   }
 
   /* Buttons */
